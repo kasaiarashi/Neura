@@ -1338,12 +1338,18 @@ pub fn handle_settings_file_changes(
             store.set_global_settings(&processed_content, cx)
         };
 
-        if let Err(err) = &result {
+        if let settings::ParseStatus::Failed { error: err } = &result.parse_status {
             let settings_type = if is_user { "user" } else { "global" };
             log::error!("Failed to load {} settings: {err}", settings_type);
         }
 
-        settings_changed(result.err(), cx);
+        settings_changed(
+            match result.parse_status {
+                settings::ParseStatus::Failed { error } => Some(anyhow::format_err!(error)),
+                settings::ParseStatus::Success => None,
+            },
+            cx,
+        );
 
         content_migrated
     };
@@ -5031,8 +5037,12 @@ mod tests {
         // 5. Critical: Verify .neura is actually excluded from worktree
         let worktree = cx.update(|cx| project.read(cx).worktrees(cx).next().unwrap());
 
-        let has_zed_entry =
-            cx.update(|cx| worktree.read(cx).entry_for_path(rel_path(".neura")).is_some());
+        let has_zed_entry = cx.update(|cx| {
+            worktree
+                .read(cx)
+                .entry_for_path(rel_path(".neura"))
+                .is_some()
+        });
 
         eprintln!(
             "Is .neura directory visible in worktree after exclusion: {}",
