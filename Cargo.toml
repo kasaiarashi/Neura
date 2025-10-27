@@ -195,6 +195,7 @@ members = [
     "crates/workspace",
     "crates/worktree",
     "crates/x_ai",
+    "crates/neura",
     "crates/zed",
     "crates/zed_actions",
     "crates/zed_env_vars",
@@ -221,7 +222,7 @@ members = [
     "tooling/perf",
     "tooling/xtask",
 ]
-default-members = ["crates/zed"]
+default-members = ["crates/neura"]
 
 [workspace.package]
 publish = false
@@ -426,6 +427,7 @@ web_search_providers = { path = "crates/web_search_providers" }
 workspace = { path = "crates/workspace" }
 worktree = { path = "crates/worktree" }
 x_ai = { path = "crates/x_ai" }
+neura = { path = "crates/neura" }
 zed = { path = "crates/zed" }
 zed_actions = { path = "crates/zed_actions" }
 zed_env_vars = { path = "crates/zed_env_vars" }

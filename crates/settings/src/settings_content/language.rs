@@ -78,6 +78,7 @@ pub enum EditPredictionProvider {
     Copilot,
     Supermaven,
     Zed,
+    Neura,
     Codestral,
 }
 
@@ -85,6 +86,7 @@ impl EditPredictionProvider {
     pub fn is_zed(&self) -> bool {
         match self {
             EditPredictionProvider::Zed => true,
+            EditPredictionProvider::Neura => true,
             EditPredictionProvider::None
             | EditPredictionProvider::Copilot
             | EditPredictionProvider::Supermaven

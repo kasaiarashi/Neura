@@ -403,6 +403,123 @@ impl Render for EditPredictionButton {
 
                 div().child(popover_menu.into_any_element())
             }
+
+            EditPredictionProvider::Neura => {
+                let enabled = self.editor_enabled.unwrap_or(true);
+
+                let zeta_icon = if enabled {
+                    IconName::ZedPredict
+                } else {
+                    IconName::ZedPredictDisabled
+                };
+
+                if zeta::should_show_upsell_modal() {
+                    let tooltip_meta = if self.user_store.read(cx).current_user().is_some() {
+                        "Choose a Plan"
+                    } else {
+                        "Sign In"
+                    };
+
+                    return div().child(
+                        IconButton::new("zed-predict-pending-button", zeta_icon)
+                            .shape(IconButtonShape::Square)
+                            .indicator(Indicator::dot().color(Color::Muted))
+                            .indicator_border_color(Some(cx.theme().colors().status_bar_background))
+                            .tooltip(move |_window, cx| {
+                                Tooltip::with_meta("Edit Predictions", None, tooltip_meta, cx)
+                            })
+                            .on_click(cx.listener(move |_, _, window, cx| {
+                                telemetry::event!(
+                                    "Pending ToS Clicked",
+                                    source = "Edit Prediction Status Button"
+                                );
+                                window.dispatch_action(
+                                    zed_actions::OpenZedPredictOnboarding.boxed_clone(),
+                                    cx,
+                                );
+                            })),
+                    );
+                }
+
+                let mut over_limit = false;
+
+                if let Some(usage) = self
+                    .edit_prediction_provider
+                    .as_ref()
+                    .and_then(|provider| provider.usage(cx))
+                {
+                    over_limit = usage.over_limit()
+                }
+
+                let show_editor_predictions = self.editor_show_predictions;
+
+                let icon_button = IconButton::new("zed-predict-pending-button", zeta_icon)
+                    .shape(IconButtonShape::Square)
+                    .when(
+                        enabled && (!show_editor_predictions || over_limit),
+                        |this| {
+                            this.indicator(Indicator::dot().when_else(
+                                over_limit,
+                                |dot| dot.color(Color::Error),
+                                |dot| dot.color(Color::Muted),
+                            ))
+                            .indicator_border_color(Some(cx.theme().colors().status_bar_background))
+                        },
+                    )
+                    .when(!self.popover_menu_handle.is_deployed(), |element| {
+                        element.tooltip(move |_window, cx| {
+                            if enabled {
+                                if show_editor_predictions {
+                                    Tooltip::for_action("Edit Prediction", &ToggleMenu, cx)
+                                } else {
+                                    Tooltip::with_meta(
+                                        "Edit Prediction",
+                                        Some(&ToggleMenu),
+                                        "Hidden For This File",
+                                        cx,
+                                    )
+                                }
+                            } else {
+                                Tooltip::with_meta(
+                                    "Edit Prediction",
+                                    Some(&ToggleMenu),
+                                    "Disabled For This File",
+                                    cx,
+                                )
+                            }
+                        })
+                    });
+
+                let this = cx.entity();
+
+                let mut popover_menu = PopoverMenu::new("zeta")
+                    .menu(move |window, cx| {
+                        Some(this.update(cx, |this, cx| this.build_zeta_context_menu(window, cx)))
+                    })
+                    .anchor(Corner::BottomRight)
+                    .with_handle(self.popover_menu_handle.clone());
+
+                let is_refreshing = self
+                    .edit_prediction_provider
+                    .as_ref()
+                    .is_some_and(|provider| provider.is_refreshing(cx));
+
+                if is_refreshing {
+                    popover_menu = popover_menu.trigger(
+                        icon_button.with_animation(
+                            "pulsating-label",
+                            Animation::new(Duration::from_secs(2))
+                                .repeat()
+                                .with_easing(pulsating_between(0.2, 1.0)),
+                            |icon_button, delta| icon_button.alpha(delta),
+                        ),
+                    );
+                } else {
+                    popover_menu = popover_menu.trigger(icon_button);
+                }
+
+                div().child(popover_menu.into_any_element())
+            }
         }
     }
 }

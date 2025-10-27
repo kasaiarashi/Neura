@@ -178,6 +178,9 @@ fn assign_edit_prediction_provider(
         EditPredictionProvider::None => {
             editor.set_edit_prediction_provider::<ZetaEditPredictionProvider>(None, window, cx);
         }
+        EditPredictionProvider::Zed => {
+            editor.set_edit_prediction_provider::<ZetaEditPredictionProvider>(None, window, cx);
+        }
         EditPredictionProvider::Copilot => {
             if let Some(copilot) = Copilot::global(cx) {
                 if let Some(buffer) = singleton_buffer
@@ -201,67 +204,6 @@ fn assign_edit_prediction_provider(
             let http_client = client.http_client();
             let provider = cx.new(|_| CodestralCompletionProvider::new(http_client));
             editor.set_edit_prediction_provider(Some(provider), window, cx);
-        }
-        EditPredictionProvider::Zed => {
-            if user_store.read(cx).current_user().is_some() {
-                let mut worktree = None;
-
-                if let Some(buffer) = &singleton_buffer
-                    && let Some(file) = buffer.read(cx).file()
-                {
-                    let id = file.worktree_id(cx);
-                    if let Some(inner_worktree) = editor
-                        .project()
-                        .and_then(|project| project.read(cx).worktree_for_id(id, cx))
-                    {
-                        worktree = Some(inner_worktree);
-                    }
-                }
-
-                if let Some(project) = editor.project() {
-                    if cx.has_flag::<Zeta2FeatureFlag>() {
-                        let zeta = zeta2::Zeta::global(client, &user_store, cx);
-                        let provider = cx.new(|cx| {
-                            zeta2::ZetaEditPredictionProvider::new(
-                                project.clone(),
-                                &client,
-                                &user_store,
-                                cx,
-                            )
-                        });
-
-                        // TODO [zeta2] handle multibuffers
-                        if let Some(buffer) = &singleton_buffer
-                            && buffer.read(cx).file().is_some()
-                        {
-                            zeta.update(cx, |zeta, cx| {
-                                zeta.register_buffer(buffer, project, cx);
-                            });
-                        }
-
-                        editor.set_edit_prediction_provider(Some(provider), window, cx);
-                    } else {
-                        let zeta = zeta::Zeta::register(worktree, client.clone(), user_store, cx);
-
-                        if let Some(buffer) = &singleton_buffer
-                            && buffer.read(cx).file().is_some()
-                        {
-                            zeta.update(cx, |zeta, cx| {
-                                zeta.register_buffer(buffer, project, cx);
-                            });
-                        }
-
-                        let provider = cx.new(|_| {
-                            zeta::ZetaEditPredictionProvider::new(
-                                zeta,
-                                project.clone(),
-                                singleton_buffer,
-                            )
-                        });
-                        editor.set_edit_prediction_provider(Some(provider), window, cx);
-                    }
-                }
-            }
         }
         EditPredictionProvider::Neura => {
             if user_store.read(cx).current_user().is_some() {
