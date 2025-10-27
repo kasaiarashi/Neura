@@ -429,6 +429,7 @@ mod no_action {
         [
             /// Action with special handling which unbinds the keybinding this is associated with,
             /// if it is the highest precedence match.
+            #[action(deprecated_aliases = ["neura::NoAction"])]
             NoAction
         ]
     );

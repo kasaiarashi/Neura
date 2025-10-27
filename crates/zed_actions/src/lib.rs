@@ -31,24 +31,25 @@ actions!(
     zed,
     [
         /// Opens the settings editor.
-        #[action(deprecated_aliases = ["zed_actions::OpenSettingsEditor"])]
+        #[action(deprecated_aliases = ["zed_actions::OpenSettingsEditor", "neura::OpenSettings"])]
         OpenSettings,
         /// Opens the settings JSON file.
-        #[action(deprecated_aliases = ["zed_actions::OpenSettings"])]
+        #[action(deprecated_aliases = ["zed_actions::OpenSettings", "neura::OpenSettingsFile"])]
         OpenSettingsFile,
         /// Opens the default keymap file.
         OpenDefaultKeymap,
         /// Opens the user keymap file.
-        #[action(deprecated_aliases = ["zed_actions::OpenKeymap"])]
+        #[action(deprecated_aliases = ["zed_actions::OpenKeymap", "neura::OpenKeymapFile"])]
         OpenKeymapFile,
         /// Opens the keymap editor.
-        #[action(deprecated_aliases = ["zed_actions::OpenKeymapEditor"])]
+        #[action(deprecated_aliases = ["zed_actions::OpenKeymapEditor", "neura::OpenKeymap"])]
         OpenKeymap,
         /// Opens account settings.
         OpenAccountSettings,
         /// Opens server settings.
         OpenServerSettings,
         /// Quits the application.
+        #[action(deprecated_aliases = ["neura::Quit"])]
         Quit,
         /// Shows information about Zed.
         About,
@@ -79,7 +80,7 @@ pub enum ExtensionCategoryFilter {
 
 /// Opens the extensions management interface.
 #[derive(PartialEq, Clone, Default, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = zed)]
+#[action(namespace = zed, deprecated_aliases = ["neura::Extensions"])]
 #[serde(deny_unknown_fields)]
 pub struct Extensions {
     /// Filters the extensions page down to extensions that are in the specified category.
@@ -92,7 +93,7 @@ pub struct Extensions {
 
 /// Decreases the font size in the editor buffer.
 #[derive(PartialEq, Clone, Default, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = zed)]
+#[action(namespace = zed, deprecated_aliases = ["neura::DecreaseBufferFontSize"])]
 #[serde(deny_unknown_fields)]
 pub struct DecreaseBufferFontSize {
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct DecreaseBufferFontSize {
 
 /// Increases the font size in the editor buffer.
 #[derive(PartialEq, Clone, Default, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = zed)]
+#[action(namespace = zed, deprecated_aliases = ["neura::IncreaseBufferFontSize"])]
 #[serde(deny_unknown_fields)]
 pub struct IncreaseBufferFontSize {
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct OpenSettingsAt {
 
 /// Resets the buffer font size to the default value.
 #[derive(PartialEq, Clone, Default, Debug, Deserialize, JsonSchema, Action)]
-#[action(namespace = zed)]
+#[action(namespace = zed, deprecated_aliases = ["neura::ResetBufferFontSize"])]
 #[serde(deny_unknown_fields)]
 pub struct ResetBufferFontSize {
     #[serde(default)]
